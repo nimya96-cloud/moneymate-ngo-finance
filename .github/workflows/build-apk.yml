@@ -36,7 +36,7 @@ jobs:
       - name: Verify Flutter Version
         run: flutter --version
 
-      # Step 5: Regenerate clean Android platform files matching Flutter 3.24
+      # Step 5: Regenerate clean Android platform files matching Flutter 3.24 & Kotlin 1.9.24
       - name: Regenerate Clean Android Project
         working-directory: flutter_app
         run: |
@@ -45,6 +45,7 @@ jobs:
           rm -rf android
           flutter create --platforms=android --org=com.moneymate .
           cp -r /tmp/lib_backup/* lib/
+          sed -i 's/"org.jetbrains.kotlin.android" version "[^"]*"/"org.jetbrains.kotlin.android" version "1.9.24"/' android/settings.gradle
           sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>' android/app/src/main/AndroidManifest.xml
           sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
 
