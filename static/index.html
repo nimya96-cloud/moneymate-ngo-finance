@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MoneyMate NGO Finance - CSA & CNCP Projects</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #printableLedgerArea, #printableLedgerArea * { visibility: visible; }
+      #printableLedgerArea { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex justify-center selection:bg-emerald-500 selection:text-white">
+
+  <!-- Mobile Frame Container -->
+  <div class="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col relative overflow-x-hidden">
+
+    <!-- ============================================================== -->
+    <!-- VIEW 1: AUTHENTICATION SCREEN (LOGIN & REGISTRATION)            -->
+    <!-- ============================================================== -->
+    <div id="authScreen" class="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-emerald-900 via-slate-900 to-indigo-950 text-white min-h-screen">
+      
+      <!-- Logo & Branding -->
+      <div class="pt-6 text-center space-y-2">
+        <div class="w-16 h-16 bg-white/10 rounded-2xl mx-auto flex items-center justify-center backdrop-blur-md border border-white/20 shadow-xl">
+          <i data-lucide="shield-check" class="w-9 h-9 text-emerald-400"></i>
+        </div>
+        <h1 class="text-2xl font-black tracking-wide text-white flex items-center justify-center gap-1.5">
+          MoneyMate <span class="text-xs bg-emerald-500 text-slate-950 px-2 py-0.5 rounded font-mono font-black">NGO</span>
+        </h1>
+        <p class="text-xs text-emerald-200">CSA & CNCP Projects Financial Portal</p>
+        <span class="inline-block text-[10px] bg-black/40 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-mono" id="authClockIST">
+          -- IST
+        </span>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-5 shadow-2xl text-slate-800 my-auto">
+        <!-- Tab Selector: Login vs Register -->
+        <div class="flex bg-black/30 p-1 rounded-xl mb-4 text-xs font-bold text-white">
+          <button id="tabBtnLogin" onclick="switchAuthTab('LOGIN')" class="flex-1 py-2 rounded-lg bg-emerald-600 transition shadow">
+            ലോഗിൻ (Login)
+          </button>
+          <button id="tabBtnRegister" onclick="switchAuthTab('REGISTER')" class="flex-1 py-2 rounded-lg hover:text-emerald-300 transition">
+            രജിസ്ട്രേഷൻ (Register)
+          </button>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="authAlert" class="hidden mb-3 p-2.5 rounded-xl text-xs font-semibold"></div>
+
+        <!-- 1. LOGIN FORM -->
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-emerald-100 mb-1">WhatsApp / Phone Number</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs font-bold">+91</span>
+              <input type="tel" id="loginPhone" required placeholder="9846011111" class="w-full pl-11 pr-3 py-2.5 bg-white rounded-xl text-xs font-bold text-slate-900 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner">
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-emerald-100">Security PIN</label>
+              <span class="text-[10px] text-emerald-300">Default PIN: 123456</span>
+            </div>
+            <input type="password" id="loginPin" required maxlength="6" placeholder="Enter 6-digit PIN" class="w-full px-3 py-2.5 bg-white rounded-xl text-xs tracking-widest text-center font-mono font-bold text-slate-900 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner">
+          </div>
+
+          <button type="submit" id="loginSubmitBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-98 text-slate-950 font-black py-3 rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-1.5 mt-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i> Login to Workspace
+          </button>
+
+          <!-- 4 Core Staff Quick Demo Buttons -->
+          <div class="pt-3 border-t border-white/10 space-y-1.5">
+            <p class="text-[10px] text-emerald-200 text-center font-bold uppercase tracking-wider">Quick Login (4 Project Staff):</p>
+            <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+              <button type="button" onclick="fillQuickLogin('9846011111', '123456')" class="p-2 bg-emerald-950/60 hover:bg-emerald-800/60 rounded-xl text-left text-white border border-emerald-500/30">
+                <div class="font-bold">👨‍💼 Rahul Nair</div>
+                <div class="text-[9px] text-emerald-300">CSA Coordinator</div>
+              </button>
+              <button type="button" onclick="fillQuickLogin('9846022222', '123456')" class="p-2 bg-emerald-950/60 hover:bg-emerald-800/60 rounded-xl text-left text-white border border-emerald-500/30">
+                <div class="font-bold">👩‍💼 Priya Menon</div>
+                <div class="text-[9px] text-emerald-300">CSA Case Worker</div>
+              </button>
+              <button type="button" onclick="fillQuickLogin('9846033333', '123456')" class="p-2 bg-indigo-950/60 hover:bg-indigo-800/60 rounded-xl text-left text-white border border-indigo-500/30">
+                <div class="font-bold">👨‍💼 Anand Kumar</div>
+                <div class="text-[9px] text-indigo-300">CNCP Coordinator</div>
+              </button>
+              <button type="button" onclick="fillQuickLogin('9846044444', '123456')" class="p-2 bg-indigo-950/60 hover:bg-indigo-800/60 rounded-xl text-left text-white border border-indigo-500/30">
+                <div class="font-bold">👩‍💼 Deepa Varghese</div>
+                <div class="text-[9px] text-indigo-300">CNCP Case Worker</div>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- 2. REGISTRATION FORM WITH WHATSAPP OTP & PEER APPROVAL -->
+        <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
+          <div>
+            <label class="block text-xs font-semibold text-emerald-100 mb-1">Full Name</label>
+            <input type="text" id="regName" required placeholder="Staff Full Name" class="w-full px-3 py-2 bg-white rounded-xl text-xs font-semibold text-slate-900 border border-slate-200">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-emerald-100 mb-1">Project</label>
+              <select id="regProject" onchange="syncDesignationOptions()" class="w-full px-2 py-2 bg-white rounded-xl text-xs font-bold text-slate-900 border border-slate-200">
+                <option value="CSA">CSA Project</option>
+                <option value="CNCP">CNCP Project</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-emerald-100 mb-1">Designation</label>
+              <select id="regDesignation" class="w-full px-2 py-2 bg-white rounded-xl text-xs font-bold text-slate-900 border border-slate-200">
+                <option value="CSA Coordinator">CSA Coordinator</option>
+                <option value="CSA Case Worker">CSA Case Worker</option>
+                <option value="CNCP Coordinator">CNCP Coordinator</option>
+                <option value="CNCP Case Worker">CNCP Case Worker</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-emerald-100 mb-1">Fixed Salary (₹)</label>
+              <input type="number" id="regSalary" required placeholder="20000" class="w-full px-3 py-2 bg-white rounded-xl text-xs font-bold text-slate-900 border border-slate-200">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-emerald-100 mb-1">Set 6-Digit PIN</label>
+              <input type="password" id="regPin" required maxlength="6" minlength="4" placeholder="e.g. 123456" class="w-full px-3 py-2 bg-white rounded-xl text-xs tracking-widest text-center font-mono font-bold text-slate-900 border border-slate-200">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-emerald-100 mb-1">WhatsApp Number</label>
+            <div class="flex gap-1.5">
+              <input type="tel" id="regPhone" required placeholder="10-digit number" class="flex-1 px-3 py-2 bg-white rounded-xl text-xs font-semibold text-slate-900 border border-slate-200">
+              <button type="button" onclick="requestRegistrationOtp()" id="btnSendOtp" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap shadow flex items-center gap-1">
+                <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Get OTP
+              </button>
+            </div>
+          </div>
+
+          <!-- WhatsApp Direct Link Banner -->
+          <div id="waOtpBanner" class="hidden p-2.5 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-[11px] space-y-1">
+            <div class="flex justify-between items-center text-emerald-300 font-bold">
+              <span>OTP Generated: <b id="displayedOtp" class="text-white font-mono text-sm bg-black/40 px-1.5 rounded">------</b></span>
+              <a id="waDirectLink" href="#" target="_blank" class="text-emerald-400 underline flex items-center gap-0.5">
+                <i data-lucide="external-link" class="w-3 h-3"></i> WhatsApp Link
+              </a>
+            </div>
+            <p class="text-emerald-200 text-[10px]">Enter the 6-digit OTP below to verify your phone:</p>
+          </div>
+
+          <div id="otpInputDiv" class="hidden">
+            <label class="block text-xs font-semibold text-emerald-100 mb-1">Enter WhatsApp Verification OTP</label>
+            <input type="text" id="regOtpInput" maxlength="6" placeholder="Enter 6-digit OTP" class="w-full px-3 py-2 bg-white rounded-xl text-xs font-mono font-bold tracking-widest text-center text-slate-900 border border-slate-200">
+          </div>
+
+          <button type="submit" id="registerSubmitBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-98 text-slate-950 font-black py-2.5 rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-1.5 mt-2">
+            <i data-lucide="user-check" class="w-4 h-4"></i> Verify OTP & Register (Needs Peer Approval)
+          </button>
+        </form>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="text-center text-[10px] text-emerald-300">
+        Peer-Approved Multi-User Security • Full Transparency for All 4 Roles
+      </div>
+    </div>
+
+
+    <!-- ============================================================== -->
+    <!-- VIEW 2: MAIN APPLICATION WORKSPACE                             -->
+    <!-- ============================================================== -->
+    <div id="mainAppScreen" class="flex-1 flex flex-col hidden pb-20">
+
+      <!-- Header with Logged-in Staff Info & Logout -->
+      <header class="bg-gradient-to-r from-emerald-900 via-slate-900 to-indigo-950 text-white p-3.5 sticky top-0 z-30 shadow-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-9 h-9 rounded-full bg-emerald-400 text-slate-950 font-black flex items-center justify-center text-xs shadow-md" id="headerAvatar">
+              --
+            </div>
+            <div>
+              <div class="font-bold text-sm text-white flex items-center gap-1.5 leading-tight">
+                <span id="headerUserName">Staff Name</span>
+                <span class="text-[9px] bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 px-1.5 py-0.2 rounded font-bold" id="headerUserProject">CSA</span>
+              </div>
+              <p class="text-[10px] text-emerald-300 font-medium" id="headerUserRole">CSA Coordinator</p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center space-x-1">
+            <button onclick="openNotificationsModal()" class="relative p-2 rounded-full hover:bg-white/10 transition" title="Notifications">
+              <i data-lucide="bell" class="w-5 h-5"></i>
+              <span id="notifBadge" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-emerald-800"></span>
+            </button>
+            <button onclick="handleUserLogout()" class="p-2 rounded-full hover:bg-rose-500/20 text-rose-300 hover:text-rose-100 transition flex items-center" title="Logout">
+              <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Project Switcher Chips in Header -->
+        <div class="mt-2.5 flex space-x-1 text-[11px] font-bold">
+          <button onclick="setGlobalProjectFilter('ALL')" id="projChipALL" class="flex-1 py-1 rounded-lg bg-white/20 text-white text-center">
+            Both Projects
+          </button>
+          <button onclick="setGlobalProjectFilter('CSA')" id="projChipCSA" class="flex-1 py-1 rounded-lg hover:bg-white/10 text-emerald-300 text-center">
+            CSA Project
+          </button>
+          <button onclick="setGlobalProjectFilter('CNCP')" id="projChipCNCP" class="flex-1 py-1 rounded-lg hover:bg-white/10 text-indigo-300 text-center">
+            CNCP Project
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Dynamic Content -->
+      <main class="flex-1 overflow-y-auto p-4 space-y-4">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: DASHBOARD -->
+        <!-- ========================================== -->
+        <section id="tab-dashboard" class="space-y-4">
+
+          <!-- Time Stamp Banner in IST -->
+          <div class="flex justify-between items-center text-[10px] text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+            <span class="flex items-center gap-1 font-bold text-slate-700">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-emerald-600"></i> Indian Standard Time
+            </span>
+            <span class="font-mono font-bold text-emerald-800" id="dashTimeIST">Loading IST...</span>
+          </div>
+
+          <!-- Project Dual Balance Cards -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- CSA Project Card -->
+            <div class="bg-gradient-to-br from-emerald-800 to-emerald-950 text-white p-3.5 rounded-2xl shadow-sm space-y-2 relative overflow-hidden">
+              <div class="flex justify-between items-start">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-900/60 px-1.5 py-0.5 rounded">CSA Project</span>
+                <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div>
+                <p class="text-[10px] text-emerald-200">Balance Fund</p>
+                <h3 class="text-lg font-black text-white" id="csaBalance">₹0.00</h3>
+              </div>
+              <div class="pt-1.5 border-t border-emerald-700/50 text-[10px] flex justify-between text-emerald-200">
+                <span>In: <b class="text-white" id="csaIn">₹0</b></span>
+                <span>Out: <b class="text-rose-300" id="csaOut">₹0</b></span>
+              </div>
+            </div>
+
+            <!-- CNCP Project Card -->
+            <div class="bg-gradient-to-br from-indigo-800 to-indigo-950 text-white p-3.5 rounded-2xl shadow-sm space-y-2 relative overflow-hidden">
+              <div class="flex justify-between items-start">
+                <span class="text-[10px] font-black uppercase tracking-wider text-indigo-300 bg-indigo-900/60 px-1.5 py-0.5 rounded">CNCP Project</span>
+                <i data-lucide="heart-handshake" class="w-4 h-4 text-indigo-400"></i>
+              </div>
+              <div>
+                <p class="text-[10px] text-indigo-200">Balance Fund</p>
+                <h3 class="text-lg font-black text-white" id="cncpBalance">₹0.00</h3>
+              </div>
+              <div class="pt-1.5 border-t border-indigo-700/50 text-[10px] flex justify-between text-indigo-200">
+                <span>In: <b class="text-white" id="cncpIn">₹0</b></span>
+                <span>Out: <b class="text-rose-300" id="cncpOut">₹0</b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Consolidated Net Fund Card -->
+          <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md flex justify-between items-center">
+            <div>
+              <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Consolidated Total Net Balance</p>
+              <h2 class="text-2xl font-black text-emerald-400 mt-0.5" id="dashTotalBalance">₹0.00</h2>
+            </div>
+            <div class="text-right text-[11px] space-y-0.5">
+              <div>Total Grants: <b class="text-emerald-300" id="dashTotalIn">₹0</b></div>
+              <div>Total Expenses: <b class="text-rose-300" id="dashTotalOut">₹0</b></div>
+            </div>
+          </div>
+
+          <!-- Pending TA & Settlement Alert Banner -->
+          <div id="unsettledBanner" class="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between text-xs text-amber-900">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+              <div>
+                Unsettled Field TA Claims: <b class="font-bold text-rose-700">₹<span id="dashUnsettledTA">0.00</span></b>
+              </div>
+            </div>
+            <button onclick="switchTab('settlements')" class="px-2.5 py-1 bg-amber-600 text-white rounded-lg text-[10px] font-bold hover:bg-amber-700 shadow-xs">
+              Settle
+            </button>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div>
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Record Transaction</h3>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs font-semibold">
+              <button onclick="openAddTransactionModal('INCOME')" class="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl hover:bg-emerald-100 flex flex-col items-center gap-1.5 transition shadow-xs active:scale-95">
+                <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                  <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                </div>
+                <span>+ Grant Income</span>
+              </button>
+              <button onclick="openAddTransactionModal('COMMON_EXPENSE')" class="p-3 bg-amber-50 text-amber-800 border border-amber-200 rounded-2xl hover:bg-amber-100 flex flex-col items-center gap-1.5 transition shadow-xs active:scale-95">
+                <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center">
+                  <i data-lucide="building-2" class="w-4 h-4"></i>
+                </div>
+                <span>+ Office Expense</span>
+              </button>
+              <button onclick="openAddTransactionModal('FIELD_EXPENSE')" class="p-3 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-2xl hover:bg-indigo-100 flex flex-col items-center gap-1.5 transition shadow-xs active:scale-95">
+                <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                  <i data-lucide="car" class="w-4 h-4"></i>
+                </div>
+                <span>+ My Field TA Claim</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- LIVE ACTIVITY AUDIT FEED WITH INDIAN STANDARD TIME (IST) -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <i data-lucide="activity" class="w-3.5 h-3.5 text-emerald-600"></i> Live Team Activity Feed (IST)
+              </h3>
+            </div>
+            <div id="dashLiveFeed" class="space-y-2 text-xs">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: TRANSACTIONS LIST -->
+        <!-- ========================================== -->
+        <section id="tab-transactions" class="space-y-3 hidden">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-slate-800">Transactions Ledger</h2>
+              <p class="text-[10px] text-slate-400">Total transparency across CSA & CNCP</p>
+            </div>
+            <button onclick="openAddTransactionModal('FIELD_EXPENSE')" class="bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 shadow">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Entry
+            </button>
+          </div>
+
+          <!-- Type Filters -->
+          <div class="flex space-x-1.5 overflow-x-auto hide-scrollbar pb-1 text-xs font-semibold">
+            <button onclick="filterTransactionsType('ALL')" id="filterBtnALL" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white whitespace-nowrap shadow-xs font-bold">All</button>
+            <button onclick="filterTransactionsType('INCOME')" id="filterBtnINCOME" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-700 whitespace-nowrap">Grants</button>
+            <button onclick="filterTransactionsType('COMMON_EXPENSE')" id="filterBtnCOMMON_EXPENSE" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-700 whitespace-nowrap">Office Exp</button>
+            <button onclick="filterTransactionsType('FIELD_EXPENSE')" id="filterBtnFIELD_EXPENSE" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-700 whitespace-nowrap">Staff TA</button>
+          </div>
+
+          <div id="transactionsList" class="space-y-2.5">
+            <!-- Populated via JS -->
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: INDIVIDUAL STAFF LEDGERS WITH DATE RANGE & PDF EXPORT -->
+        <!-- ========================================== -->
+        <section id="tab-ledgers" class="space-y-4 hidden">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-base font-bold text-slate-800">Staff Field & TA Ledgers</h2>
+              <p class="text-xs text-slate-500">Individual ledger statement with date filtering & PDF export</p>
+            </div>
+            <button onclick="printLedgerStatement()" class="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 shadow">
+              <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print / PDF
+            </button>
+          </div>
+
+          <!-- Ledger Filter Controls -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-3 space-y-2.5 text-xs shadow-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Select Staff Member</label>
+              <select id="ledgerStaffSelect" onchange="loadStaffLedger()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-slate-900">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-semibold text-slate-600 mb-1">From Date</label>
+                <input type="date" id="ledgerStartDate" onchange="loadStaffLedger()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-600 mb-1">To Date</label>
+                <input type="date" id="ledgerEndDate" onchange="loadStaffLedger()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs">
+              </div>
+            </div>
+          </div>
+
+          <!-- Printable Ledger Area -->
+          <div id="printableLedgerArea" class="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
+            <!-- Formal Statement Header (Prints in PDF) -->
+            <div class="border-b border-slate-200 pb-3 text-center space-y-0.5">
+              <h3 class="font-black text-sm text-slate-900">MONEYMATE NGO FINANCIAL PORTAL</h3>
+              <p class="text-[10px] text-slate-500" id="printLedgerProjectTitle">CSA & CNCP Projects</p>
+              <h4 class="font-bold text-xs text-emerald-800 pt-1">STAFF INDIVIDUAL STATEMENT & EXPENSE LEDGER</h4>
+            </div>
+
+            <!-- Staff Meta Card -->
+            <div class="bg-slate-50 p-3 rounded-xl space-y-1 text-xs border border-slate-200">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Staff Name:</span>
+                <span class="font-bold text-slate-900" id="ledStaffName">--</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Designation & Project:</span>
+                <span class="font-bold text-slate-900" id="ledStaffRole">--</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">WhatsApp / Phone:</span>
+                <span class="font-mono font-bold text-slate-800" id="ledStaffPhone">--</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Monthly Fixed Salary:</span>
+                <span class="font-bold text-slate-800" id="ledStaffSalary">₹0.00</span>
+              </div>
+              <div class="flex justify-between pt-1 border-t border-slate-200 font-bold text-rose-700">
+                <span>Unpaid Salary Dues (Carry-Forward):</span>
+                <span id="ledStaffPendingSalary">₹0.00</span>
+              </div>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-[11px] text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                    <th class="p-1.5">Date</th>
+                    <th class="p-1.5">Particulars / Description</th>
+                    <th class="p-1.5 text-right">TA Claim (Dr)</th>
+                    <th class="p-1.5 text-right">Paid Out (Cr)</th>
+                  </tr>
+                </thead>
+                <tbody id="ledgerTableBody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Net Ledger Summary -->
+            <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs space-y-1">
+              <div class="flex justify-between">
+                <span class="text-emerald-900">Total Field TA Claims in Period:</span>
+                <span class="font-bold text-slate-800" id="ledTotalClaims">₹0.00</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-emerald-900">Total Amount Disbursed / Paid:</span>
+                <span class="font-bold text-emerald-700" id="ledTotalPaid">₹0.00</span>
+              </div>
+              <div class="flex justify-between pt-1.5 border-t border-emerald-300 font-black text-sm text-slate-950">
+                <span>Net Outstanding Carry-Forward Due:</span>
+                <span class="text-rose-700" id="ledNetDue">₹0.00</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: MONTHLY SALARY & TA SETTLEMENT (1st of Month) -->
+        <!-- ========================================== -->
+        <section id="tab-settlements" class="space-y-4 hidden">
+          <div>
+            <h2 class="text-base font-bold text-slate-800">Monthly Salary & TA Settlement</h2>
+            <p class="text-xs text-slate-500">Booked on the 1st of each month. Supports partial payouts based on fund availability.</p>
+          </div>
+
+          <!-- Pending Settlement Cards -->
+          <div id="staffSettlementCards" class="space-y-3">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Settlement History -->
+          <div class="mt-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Past Settlement Records</h3>
+            <div id="settlementHistoryList" class="space-y-2">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: DUAL APPROVAL & STAFF DIRECTORY -->
+        <!-- ========================================== -->
+        <section id="tab-approvals" class="space-y-4 hidden">
+          <div class="bg-indigo-900 text-white p-4 rounded-3xl shadow-md">
+            <div class="flex items-center gap-2 mb-1">
+              <i data-lucide="shield-alert" class="w-5 h-5 text-indigo-300"></i>
+              <h2 class="font-bold text-base">Dual-Approval Security & Staff</h2>
+            </div>
+            <p class="text-xs text-indigo-200">
+              New staff onboarding and staff relieving require peer verification OTP before taking effect.
+            </p>
+          </div>
+
+          <!-- Pending Approval Requests -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Pending Peer Approvals</h3>
+              <span id="pendingApprovalsCount" class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">0</span>
+            </div>
+            <div id="approvalsList" class="space-y-3">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Active 4 Staff Directory with Relieve Button -->
+          <div class="space-y-2 pt-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Staff Directory & Relieving Management</h3>
+            <div id="staffDirectoryList" class="space-y-2 text-xs">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Bottom Navigation Bar -->
+      <nav class="fixed bottom-0 max-w-md w-full bg-white border-t border-slate-200 px-2 py-2 flex justify-around items-center z-30 shadow-lg">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-emerald-700">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">ഹോം</span>
+        </button>
+        <button onclick="switchTab('transactions')" id="nav-transactions" class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+          <i data-lucide="receipt" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">ഇടപാടുകൾ</span>
+        </button>
+        <button onclick="switchTab('ledgers')" id="nav-ledgers" class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+          <i data-lucide="book-open" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">ലെഡ്ജർ</span>
+        </button>
+        <button onclick="switchTab('settlements')" id="nav-settlements" class="flex flex-col items-center text-slate-400 hover:text-slate-600 relative">
+          <i data-lucide="wallet" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">സെറ്റിൽമെന്റ്</span>
+        </button>
+        <button onclick="switchTab('approvals')" id="nav-approvals" class="flex flex-col items-center text-slate-400 hover:text-slate-600 relative">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">OTP അപ്രൂവൽ</span>
+          <span id="navApprovalDot" class="hidden absolute top-0 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
+        </button>
+      </nav>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODALS: ADD TRANSACTION, SETTLEMENT, APPROVAL OTP             -->
+    <!-- ============================================================== -->
+
+    <!-- Modal: Add / Edit Transaction -->
+    <div id="txModal" class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden backdrop-blur-xs">
+      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+          <h3 class="font-bold text-base text-slate-800" id="txModalTitle">Record Transaction</h3>
+          <button onclick="closeModal('txModal')" class="p-1 rounded-full text-slate-400 hover:bg-slate-100">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3 text-xs">
+          <input type="hidden" id="editTxId" value="">
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Project</label>
+              <select id="txProjectInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                <option value="CSA">CSA Project</option>
+                <option value="CNCP">CNCP Project</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Type</label>
+              <select id="txTypeInput" onchange="updateCategoryDropdown()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-900">
+                <option value="INCOME">Grant Income</option>
+                <option value="COMMON_EXPENSE">Common Expense</option>
+                <option value="FIELD_EXPENSE">Staff Field TA / Food Claim</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Category</label>
+            <select id="txCategoryInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Amount (₹)</label>
+              <input type="number" id="txAmountInput" step="0.01" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-black text-slate-900">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Date</label>
+              <input type="date" id="txDateInput" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Purpose / Case Details</label>
+            <textarea id="txDescInput" rows="2" required placeholder="Enter home visit, travel, food or grant purpose..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs"></textarea>
+          </div>
+
+          <!-- Document Upload with Canvas Compression -->
+          <div class="border border-dashed border-emerald-300 bg-emerald-50/50 p-3 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="font-bold text-emerald-950 flex items-center gap-1">
+                <i data-lucide="paperclip" class="w-3.5 h-3.5 text-emerald-700"></i>
+                Bills & Receipts (Auto Compressed)
+              </label>
+              <span class="text-[10px] text-emerald-800 bg-emerald-200/60 px-1.5 py-0.5 rounded font-mono font-bold">~100KB</span>
+            </div>
+            <input type="file" id="txFileInput" accept="image/*,.pdf" multiple onchange="handleFileSelection(event)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800">
+            <div id="fileCompressionPreview" class="text-[11px] text-slate-600 space-y-1"></div>
+          </div>
+
+          <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-black py-3 rounded-xl text-xs shadow-md transition active:scale-98">
+            Save Record (Stamped with IST)
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Variable Monthly Salary & TA Settlement -->
+    <div id="settlementModal" class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden backdrop-blur-xs">
+      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+          <div>
+            <h3 class="font-bold text-base text-slate-800">1st of Month Salary & TA Settlement</h3>
+            <p class="text-[11px] text-slate-500" id="settleStaffHeader">Staff Name</p>
+          </div>
+          <button onclick="closeModal('settlementModal')" class="p-1 rounded-full text-slate-400 hover:bg-slate-100">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Dues Breakdown -->
+        <div class="bg-slate-50 p-3 rounded-2xl space-y-1.5 text-xs border border-slate-200">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Agreed Fixed Monthly Salary:</span>
+            <span class="font-bold text-slate-800" id="settleSalaryFixed">₹0.00</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Previous Unpaid Salary Carry-Forward:</span>
+            <span class="font-bold text-rose-700" id="settlePrevSalary">₹0.00</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Accumulated Pending TA Claims:</span>
+            <span class="font-bold text-indigo-700" id="settlePendingTA">₹0.00</span>
+          </div>
+          <div class="flex justify-between pt-1.5 border-t border-slate-300 font-black text-sm">
+            <span class="text-slate-900">Total Dues Payable This Month:</span>
+            <span class="text-emerald-700" id="settleTotalDue">₹0.00</span>
+          </div>
+        </div>
+
+        <form id="settlementForm" onsubmit="handleExecuteSettlement(event)" class="space-y-3 text-xs">
+          <input type="hidden" id="settleStaffId">
+          <input type="hidden" id="settleProjectVal">
+          <input type="hidden" id="settleBaseSalaryVal">
+          <input type="hidden" id="settlePendingTAVal">
+          <input type="hidden" id="settleTotalDueVal">
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Month Period</label>
+              <input type="month" id="settleMonthPeriod" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Payment Mode</label>
+              <select id="settlePayMode" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold">
+                <option value="Bank Transfer / NEFT">Bank Transfer / NEFT</option>
+                <option value="UPI / PhonePe / GPay">UPI / PhonePe / GPay</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Variable Actual Amount Paid Now -->
+          <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl space-y-1">
+            <label class="block font-black text-amber-950 mb-0.5">Amount Actually Paid Now from Project Fund (₹)</label>
+            <p class="text-[10px] text-amber-800">If funds are tight, enter whatever is available. Unpaid balance will carry forward!</p>
+            <input type="number" id="settleActualPaidInput" step="0.01" required oninput="calculateCarryForward()" class="w-full px-3 py-2 bg-white rounded-xl text-sm font-black text-emerald-800 border border-amber-300 focus:outline-none">
+            <div class="flex justify-between pt-1 text-[11px] font-bold">
+              <span class="text-slate-600">Unpaid Carry-Forward Due:</span>
+              <span class="text-rose-700 font-mono" id="settleCarryForwardPreview">₹0.00</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">UTR / Bank Reference No</label>
+            <input type="text" id="settleRefNo" placeholder="NEFT123456" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Notes / Remarks</label>
+            <textarea id="settleNotes" rows="2" placeholder="e.g. Cleared November TA claims + partial salary" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs"></textarea>
+          </div>
+
+          <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-black py-3 rounded-xl text-xs shadow-md transition active:scale-98">
+            Disburse Settlement & Update Carry-Forward Balance
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Peer Approval OTP Verification -->
+    <div id="approvalActionModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
+      <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="text-center">
+          <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center mx-auto mb-2">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-bold text-base text-slate-800">Peer Approval Verification</h3>
+          <p class="text-xs text-slate-500 mt-1" id="approvalActionTitle">Action Details</p>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-900 space-y-1">
+          <div class="flex justify-between font-semibold">
+            <span>Requested By:</span>
+            <span id="approvalRequesterName" class="font-bold">Staff Member</span>
+          </div>
+          <div class="flex justify-between font-semibold">
+            <span>Verification OTP:</span>
+            <span id="approvalOtpDisplay" class="font-mono font-black text-indigo-700 text-sm">------</span>
+          </div>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <input type="hidden" id="activeApprovalId">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Enter Your 6-Digit Staff Security PIN</label>
+            <input type="password" id="approvalPinInput" maxlength="6" required placeholder="PIN (Default: 123456)" class="w-full text-center tracking-widest font-mono text-base bg-slate-50 border border-slate-300 rounded-xl p-2.5">
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <button type="button" onclick="submitApprovalDecision('REJECTED')" class="flex-1 bg-rose-50 border border-rose-200 text-rose-700 py-2.5 rounded-xl font-bold hover:bg-rose-100">
+              Reject
+            </button>
+            <button type="button" onclick="submitApprovalDecision('APPROVED')" class="flex-1 bg-emerald-700 text-white py-2.5 rounded-xl font-black hover:bg-emerald-800 shadow">
+              Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Notifications -->
+    <div id="notifModal" class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden backdrop-blur-xs">
+      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-3 max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+          <h3 class="font-bold text-base text-slate-800 flex items-center gap-1.5">
+            <i data-lucide="bell" class="w-4 h-4 text-emerald-600"></i> Team Notifications (IST)
+          </h3>
+          <button onclick="closeModal('notifModal')" class="p-1 rounded-full text-slate-400 hover:bg-slate-100">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div id="notifFeedList" class="flex-1 overflow-y-auto space-y-2 text-xs">
+          <!-- Populated by JS -->
+        </div>
+        <button onclick="markAllNotificationsRead()" class="w-full py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200">
+          Mark All as Read
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Engine -->
+  <script>
+    let currentUser = null;
+    let currentGlobalProject = "ALL";
+    let currentFilterType = "ALL";
+    let allStaff = [];
+    let allCategories = [];
+    let allTransactions = [];
+    let allSettlements = [];
+    let allApprovals = [];
+    let allNotifications = [];
+    let pendingUploadedDocs = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      document.getElementById("txDateInput").valueAsDate = new Date();
+      document.getElementById("settleMonthPeriod").value = new Date().toISOString().slice(0, 7);
+      
+      const now = new Date();
+      document.getElementById("ledgerEndDate").valueAsDate = now;
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      document.getElementById("ledgerStartDate").valueAsDate = firstDay;
+
+      startClockIST();
+      checkSavedSession();
+    });
+
+    // Indian Standard Time (IST) Clock
+    function startClockIST() {
+      function tick() {
+        const istStr = new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true
+        }) + " IST";
+        const authClock = document.getElementById("authClockIST");
+        if (authClock) authClock.textContent = istStr;
+        const dashClock = document.getElementById("dashTimeIST");
+        if (dashClock) dashClock.textContent = istStr;
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    function checkSavedSession() {
+      const saved = localStorage.getItem("moneymate_user");
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          showMainAppScreen();
+          fetchAllData();
+          return;
+        } catch(e) {
+          localStorage.removeItem("moneymate_user");
+        }
+      }
+      showAuthScreen();
+    }
+
+    function showAuthScreen() {
+      document.getElementById("authScreen").classList.remove("hidden");
+      document.getElementById("mainAppScreen").classList.add("hidden");
+      lucide.createIcons();
+    }
+
+    function showMainAppScreen() {
+      document.getElementById("authScreen").classList.add("hidden");
+      document.getElementById("mainAppScreen").classList.remove("hidden");
+      
+      document.getElementById("headerUserName").textContent = currentUser.full_name;
+      document.getElementById("headerUserRole").textContent = currentUser.designation;
+      document.getElementById("headerUserProject").textContent = currentUser.project;
+      document.getElementById("headerAvatar").textContent = currentUser.full_name.split(' ').map(n=>n[0]).join('');
+      
+      lucide.createIcons();
+    }
+
+    function switchAuthTab(tab) {
+      const alertBox = document.getElementById("authAlert");
+      alertBox.classList.add("hidden");
+
+      if (tab === 'LOGIN') {
+        document.getElementById("loginForm").classList.remove("hidden");
+        document.getElementById("registerForm").classList.add("hidden");
+        document.getElementById("tabBtnLogin").className = "flex-1 py-2 rounded-lg bg-emerald-600 transition shadow font-bold text-white";
+        document.getElementById("tabBtnRegister").className = "flex-1 py-2 rounded-lg hover:text-emerald-300 transition font-bold text-white";
+      } else {
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("registerForm").classList.remove("hidden");
+        document.getElementById("tabBtnRegister").className = "flex-1 py-2 rounded-lg bg-emerald-600 transition shadow font-bold text-white";
+        document.getElementById("tabBtnLogin").className = "flex-1 py-2 rounded-lg hover:text-emerald-300 transition font-bold text-white";
+      }
+      lucide.createIcons();
+    }
+
+    function syncDesignationOptions() {
+      const proj = document.getElementById("regProject").value;
+      const desigSelect = document.getElementById("regDesignation");
+      desigSelect.innerHTML = "";
+      if (proj === "CSA") {
+        desigSelect.innerHTML = `
+          <option value="CSA Coordinator">CSA Coordinator</option>
+          <option value="CSA Case Worker">CSA Case Worker</option>
+        `;
+      } else {
+        desigSelect.innerHTML = `
+          <option value="CNCP Coordinator">CNCP Coordinator</option>
+          <option value="CNCP Case Worker">CNCP Case Worker</option>
+        `;
+      }
+    }
+
+    function fillQuickLogin(phone, pin) {
+      document.getElementById("loginPhone").value = phone;
+      document.getElementById("loginPin").value = pin;
+    }
+
+    // Request WhatsApp OTP
+    async function requestRegistrationOtp() {
+      const name = document.getElementById("regName").value.trim();
+      const phone = document.getElementById("regPhone").value.trim();
+      if (!name || phone.length < 10) {
+        alert("Please enter full name and 10-digit WhatsApp phone number first.");
+        return;
+      }
+
+      const btn = document.getElementById("btnSendOtp");
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Sending...`;
+      lucide.createIcons();
+
+      try {
+        const res = await fetch("/api/auth/send-registration-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ full_name: name, whatsapp_number: phone })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.detail || "Failed to generate OTP");
+          return;
+        }
+
+        document.getElementById("displayedOtp").textContent = data.otp;
+        document.getElementById("waDirectLink").href = data.whatsapp_url;
+        document.getElementById("waOtpBanner").classList.remove("hidden");
+        document.getElementById("otpInputDiv").classList.remove("hidden");
+        document.getElementById("regOtpInput").value = data.otp;
+        lucide.createIcons();
+        alert(`WhatsApp OTP generated: ${data.otp}\nEnter this OTP or click the WhatsApp link.`);
+      } catch(e) {
+        alert("OTP Error: " + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="message-square" class="w-3.5 h-3.5"></i> Get OTP`;
+        lucide.createIcons();
+      }
+    }
+
+    // Submit Registration (Requires Peer Approval before Login)
+    async function handleRegisterSubmit(event) {
+      event.preventDefault();
+      const name = document.getElementById("regName").value.trim();
+      const phone = document.getElementById("regPhone").value.trim();
+      const project = document.getElementById("regProject").value;
+      const desig = document.getElementById("regDesignation").value;
+      const salary = parseFloat(document.getElementById("regSalary").value || 0);
+      const pin = document.getElementById("regPin").value.trim();
+      const otp = document.getElementById("regOtpInput").value.trim();
+      const alertBox = document.getElementById("authAlert");
+
+      if (!otp) {
+        alert("Please get and enter the WhatsApp OTP first.");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/verify-and-register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: name,
+            whatsapp_number: phone,
+            project: project,
+            designation: desig,
+            fixed_salary: salary,
+            security_pin: pin,
+            otp_code: otp
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          alertBox.textContent = data.detail || "Registration failed.";
+          alertBox.className = "mb-3 p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-200 border border-rose-500/30";
+          alertBox.classList.remove("hidden");
+          return;
+        }
+
+        // Show Peer Approval Prompt
+        alert(`✅ രജിസ്ട്രേഷൻ വിജയകരം!\n\nനിങ്ങളുടെ അക്കൗണ്ട് രജിസ്റ്റർ ചെയ്യപ്പെട്ടിട്ടുണ്ട്. മറ്റേതെങ്കിലും ആക്ടീവ് സ്റ്റാഫ് അംഗം (Peer) അപ്രൂവ് ചെയ്തതിനു ശേഷം മാത്രമേ ലോഗിൻ ചെയ്യാൻ സാധിക്കൂ.`);
+        switchAuthTab('LOGIN');
+      } catch (e) {
+        alertBox.textContent = "Error: " + e.message;
+        alertBox.classList.remove("hidden");
+      }
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const phone = document.getElementById("loginPhone").value.trim();
+      const pin = document.getElementById("loginPin").value.trim();
+      const alertBox = document.getElementById("authAlert");
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier: phone, pin: pin })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alertBox.textContent = data.detail || "Login failed.";
+          alertBox.className = "mb-3 p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-200 border border-rose-500/30";
+          alertBox.classList.remove("hidden");
+          return;
+        }
+
+        currentUser = data.user;
+        localStorage.setItem("moneymate_user", JSON.stringify(currentUser));
+        showMainAppScreen();
+        await fetchAllData();
+      } catch (e) {
+        alertBox.textContent = "Network Error: " + e.message;
+        alertBox.classList.remove("hidden");
+      }
+    }
+
+    function handleUserLogout() {
+      if (confirm(`ലോഗൗട്ട് ചെയ്യണമെന്നുറപ്പാണോ?\n(Are you sure you want to log out, ${currentUser.full_name}?)`)) {
+        localStorage.removeItem("moneymate_user");
+        currentUser = null;
+        showAuthScreen();
+      }
+    }
+
+    // Set Global Project Filter (CSA vs CNCP vs Both)
+    function setGlobalProjectFilter(proj) {
+      currentGlobalProject = proj;
+      ['ALL', 'CSA', 'CNCP'].forEach(p => {
+        const btn = document.getElementById(`projChip${p}`);
+        if (p === proj) {
+          btn.className = "flex-1 py-1 rounded-lg bg-white text-slate-900 font-black text-center shadow-sm";
+        } else {
+          btn.className = "flex-1 py-1 rounded-lg hover:bg-white/10 text-white/80 text-center";
+        }
+      });
+      renderTransactions();
+      renderSettlementCards();
+    }
+
+    async function fetchAllData() {
+      if (!currentUser) return;
+      try {
+        const [staffRes, catRes, txRes, setRes, appRes, notifRes, statsRes] = await Promise.all([
+          fetch("/api/staff").then(r => r.json()),
+          fetch("/api/categories").then(r => r.json()),
+          fetch("/api/transactions").then(r => r.json()),
+          fetch("/api/settlements").then(r => r.json()),
+          fetch("/api/approvals").then(r => r.json()),
+          fetch("/api/notifications").then(r => r.json()),
+          fetch("/api/dashboard/stats").then(r => r.json())
+        ]);
+
+        allStaff = staffRes;
+        allCategories = catRes;
+        allTransactions = txRes;
+        allSettlements = setRes;
+        allApprovals = appRes;
+        allNotifications = notifRes;
+
+        renderDashboard(statsRes);
+        renderTransactions();
+        populateStaffLedgerDropdown();
+        renderSettlementCards();
+        renderApprovals();
+        renderStaffDirectory();
+        renderNotificationsBadge();
+        lucide.createIcons();
+      } catch (e) {
+        console.error("Fetch failed:", e);
+      }
+    }
+
+    function switchTab(tabId) {
+      const tabs = ['dashboard', 'transactions', 'ledgers', 'settlements', 'approvals'];
+      tabs.forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        navBtn.classList.remove('text-emerald-700');
+        navBtn.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      activeNav.classList.remove('text-slate-400');
+      activeNav.classList.add('text-emerald-700');
+      lucide.createIcons();
+
+      if (tabId === 'ledgers') {
+        loadStaffLedger();
+      }
+    }
+
+    // Dashboard Render
+    function renderDashboard(stats) {
+      document.getElementById("csaBalance").textContent = "₹" + stats.csa.balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById("csaIn").textContent = "₹" + stats.csa.income.toLocaleString('en-IN');
+      document.getElementById("csaOut").textContent = "₹" + stats.csa.total_expense.toLocaleString('en-IN');
+
+      document.getElementById("cncpBalance").textContent = "₹" + stats.cncp.balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById("cncpIn").textContent = "₹" + stats.cncp.income.toLocaleString('en-IN');
+      document.getElementById("cncpOut").textContent = "₹" + stats.cncp.total_expense.toLocaleString('en-IN');
+
+      document.getElementById("dashTotalBalance").textContent = "₹" + stats.total_balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById("dashTotalIn").textContent = "₹" + stats.total_income.toLocaleString('en-IN');
+      document.getElementById("dashTotalOut").textContent = "₹" + stats.total_expense.toLocaleString('en-IN');
+      document.getElementById("dashUnsettledTA").textContent = stats.total_unsettled_ta.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+      // Live Activity Audit Feed with IST
+      const feed = document.getElementById("dashLiveFeed");
+      if (stats.live_feed.length === 0) {
+        feed.innerHTML = `<p class="text-xs text-slate-400 p-3 bg-white rounded-xl border">No activities recorded yet.</p>`;
+      } else {
+        feed.innerHTML = stats.live_feed.map(item => `
+          <div class="bg-white border border-slate-200 rounded-2xl p-2.5 shadow-xs space-y-1">
+            <div class="flex justify-between items-center text-[10px]">
+              <span class="font-bold text-slate-700">${item.action} • <b class="text-emerald-800">${item.performer}</b></span>
+              <span class="font-mono text-slate-400 text-[9px] bg-slate-100 px-1.5 py-0.2 rounded">${item.timestamp_formatted}</span>
+            </div>
+            <p class="text-[11px] text-slate-800 font-medium">${item.summary}</p>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Transactions Render
+    function renderTransactions() {
+      const container = document.getElementById("transactionsList");
+      let list = allTransactions.filter(t => !t.is_deleted);
+
+      if (currentGlobalProject !== "ALL") {
+        list = list.filter(t => t.project === currentGlobalProject);
+      }
+      if (currentFilterType !== "ALL") {
+        list = list.filter(t => t.transaction_type === currentFilterType);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs bg-white rounded-2xl border">No transactions found.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(t => {
+        const isOwner = t.created_by === currentUser.id;
+        let badgeColor = t.project === 'CSA' ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-indigo-100 text-indigo-900 border-indigo-300';
+        let amountColor = t.transaction_type === 'INCOME' ? 'text-emerald-700' : 'text-slate-900';
+        let sign = t.transaction_type === 'INCOME' ? '+' : '-';
+
+        return `
+          <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded border ${badgeColor}">${t.project}</span>
+                  <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">${t.transaction_type.replace('_', ' ')}</span>
+                  ${t.is_settled ? '<span class="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold border border-emerald-200">Settled</span>' : ''}
+                </div>
+                <h4 class="font-bold text-slate-800 text-xs mt-1.5">${t.description}</h4>
+                <p class="text-[10px] text-slate-400">${t.category_name} • ${t.transaction_date}</p>
+              </div>
+              <div class="text-right">
+                <span class="font-black text-sm ${amountColor}">${sign}₹${Number(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                <p class="text-[10px] text-slate-400">by ${t.created_by_name}</p>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[10px] text-slate-400">
+                ${t.staff_name ? `Field Staff: <b class="text-slate-700">${t.staff_name}</b>` : `Recorded by ${t.created_by_name}`}
+              </span>
+              <div class="flex items-center space-x-2">
+                ${isOwner ? `
+                  <button onclick="handleDeleteTransaction('${t.id}')" class="text-rose-600 hover:text-rose-700 font-bold text-[11px] flex items-center gap-0.5">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                  </button>
+                ` : `
+                  <span class="text-[10px] text-slate-400 flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-200" title="Only creator can modify">
+                    <i data-lucide="lock" class="w-3 h-3"></i> Protected
+                  </span>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function filterTransactionsType(type) {
+      currentFilterType = type;
+      ['ALL', 'INCOME', 'COMMON_EXPENSE', 'FIELD_EXPENSE'].forEach(t => {
+        const btn = document.getElementById(`filterBtn${t}`);
+        if (t === type) {
+          btn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white whitespace-nowrap shadow-xs font-bold";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-700 whitespace-nowrap font-semibold";
+        }
+      });
+      renderTransactions();
+    }
+
+    // INDIVIDUAL STAFF LEDGERS WITH DATE RANGE
+    function populateStaffLedgerDropdown() {
+      const select = document.getElementById("ledgerStaffSelect");
+      select.innerHTML = "";
+      allStaff.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = `${s.full_name} (${s.designation} - ${s.project})`;
+        if (s.id === currentUser.id) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    async function loadStaffLedger() {
+      const staffId = document.getElementById("ledgerStaffSelect").value;
+      if (!staffId) return;
+
+      const startDate = document.getElementById("ledgerStartDate").value;
+      const endDate = document.getElementById("ledgerEndDate").value;
+
+      let url = `/api/reports/staff-ledger?staff_id=${staffId}`;
+      if (startDate) url += `&start_date=${startDate}`;
+      if (endDate) url += `&end_date=${endDate}`;
+
+      const res = await fetch(url).then(r => r.json());
+
+      document.getElementById("ledStaffName").textContent = res.staff_name;
+      document.getElementById("ledStaffRole").textContent = `${res.designation} (${res.project} Project)`;
+      document.getElementById("ledStaffPhone").textContent = "+91 " + res.whatsapp_number;
+      document.getElementById("ledStaffSalary").textContent = "₹" + res.fixed_salary.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById("ledStaffPendingSalary").textContent = "₹" + res.current_pending_salary_due.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+      document.getElementById("ledTotalClaims").textContent = "₹" + res.total_claims_in_period.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById("ledTotalPaid").textContent = "₹" + res.total_paid_in_period.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      
+      const netDue = (res.current_pending_salary_due + res.total_claims_in_period) - res.total_paid_in_period;
+      document.getElementById("ledNetDue").textContent = "₹" + (netDue > 0 ? netDue : 0).toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+      const tbody = document.getElementById("ledgerTableBody");
+      if (res.entries.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">No field claims or payouts recorded for this period.</td></tr>`;
+      } else {
+        tbody.innerHTML = res.entries.map(e => `
+          <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="p-1.5 whitespace-nowrap text-slate-500">${e.date}</td>
+            <td class="p-1.5 font-medium text-slate-800">
+              ${e.description}
+              <span class="text-[9px] block text-slate-400 font-mono">${e.project} • ${e.is_settled ? 'Settled' : 'Pending'}</span>
+            </td>
+            <td class="p-1.5 text-right font-bold ${!e.is_credit_payout ? 'text-indigo-700' : 'text-slate-300'}">
+              ${!e.is_credit_payout ? '₹' + e.amount.toLocaleString('en-IN', {minimumFractionDigits: 2}) : '-'}
+            </td>
+            <td class="p-1.5 text-right font-bold ${e.is_credit_payout ? 'text-emerald-700' : 'text-slate-300'}">
+              ${e.is_credit_payout ? '₹' + e.amount.toLocaleString('en-IN', {minimumFractionDigits: 2}) : '-'}
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function printLedgerStatement() {
+      window.print();
+    }
+
+    // MONTHLY SALARY SETTLEMENT WITH PARTIAL PAYOUT
+    async function renderSettlementCards() {
+      const container = document.getElementById("staffSettlementCards");
+      const historyContainer = document.getElementById("settlementHistoryList");
+
+      let summary = await fetch("/api/settlements/pending-summary").then(r => r.json());
+      if (currentGlobalProject !== "ALL") {
+        summary = summary.filter(s => s.project === currentGlobalProject);
+      }
+
+      container.innerHTML = summary.map(s => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${s.project === 'CSA' ? 'bg-emerald-100 text-emerald-900' : 'bg-indigo-100 text-indigo-900'}">${s.project}</span>
+                <h4 class="font-bold text-slate-800 text-sm">${s.staff_name}</h4>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">${s.designation}</p>
+            </div>
+            <span class="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">
+              ${s.whatsapp_number}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-1.5 bg-slate-50 p-2.5 rounded-xl text-center text-xs">
+            <div>
+              <span class="text-slate-400 block text-[10px]">Monthly Salary</span>
+              <span class="font-bold text-slate-700">₹${s.fixed_salary.toLocaleString('en-IN')}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px]">Pending Salary Due</span>
+              <span class="font-bold text-rose-700">₹${s.previous_salary_due.toLocaleString('en-IN')}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px]">Pending TA (${s.current_unsettled_ta_claims_count})</span>
+              <span class="font-bold text-indigo-700">₹${s.current_unsettled_ta_total.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center pt-1">
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-bold">Total Dues Payable</span>
+              <div class="font-black text-emerald-700 text-sm">
+                ₹${s.total_due_payable.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+              </div>
+            </div>
+            <button onclick="openSettlementModal('${s.staff_id}', '${s.staff_name}', '${s.project}', ${s.fixed_salary}, ${s.previous_salary_due}, ${s.current_unsettled_ta_total}, ${s.total_due_payable})" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow flex items-center gap-1">
+              <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Settle Month
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      // History
+      let settlements = allSettlements;
+      if (currentGlobalProject !== "ALL") {
+        settlements = settlements.filter(s => s.project === currentGlobalProject);
+      }
+
+      if (settlements.length === 0) {
+        historyContainer.innerHTML = `<p class="text-xs text-slate-400 bg-white p-3 rounded-2xl border">No settlements recorded yet.</p>`;
+      } else {
+        historyContainer.innerHTML = settlements.map(set => `
+          <div class="bg-white border border-slate-200 rounded-2xl p-3 text-xs space-y-1">
+            <div class="flex justify-between font-bold text-slate-800">
+              <span>${set.staff_name} (${set.project} - ${set.month_period})</span>
+              <span class="text-emerald-700 font-black">Paid: ₹${Number(set.actual_amount_paid).toLocaleString('en-IN')}</span>
+            </div>
+            <p class="text-[11px] text-slate-500">
+              Total Due was ₹${Number(set.total_due_payable).toLocaleString('en-IN')} • Remaining Carry-Forward Due: <b class="text-rose-700">₹${Number(set.pending_salary_carry_forward).toLocaleString('en-IN')}</b>
+            </p>
+            <p class="text-[10px] text-slate-400">Settled by ${set.settled_by_name} on ${set.settlement_date} (${set.payment_mode})</p>
+          </div>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    function openSettlementModal(staffId, staffName, project, fixedSalary, prevSalaryDue, taTotal, totalDue) {
+      document.getElementById("settleStaffId").value = staffId;
+      document.getElementById("settleProjectVal").value = project;
+      document.getElementById("settleBaseSalaryVal").value = fixedSalary;
+      document.getElementById("settlePendingTAVal").value = taTotal;
+      document.getElementById("settleTotalDueVal").value = totalDue;
+
+      document.getElementById("settleStaffHeader").textContent = `${staffName} (${project} Project)`;
+      document.getElementById("settleSalaryFixed").textContent = "₹" + fixedSalary.toLocaleString('en-IN');
+      document.getElementById("settlePrevSalary").textContent = "₹" + prevSalaryDue.toLocaleString('en-IN');
+      document.getElementById("settlePendingTA").textContent = "₹" + taTotal.toLocaleString('en-IN');
+      document.getElementById("settleTotalDue").textContent = "₹" + totalDue.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+      // Default actual paid is total due (can be edited to partial amount!)
+      document.getElementById("settleActualPaidInput").value = totalDue;
+      calculateCarryForward();
+
+      document.getElementById("settlementModal").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function calculateCarryForward() {
+      const totalDue = parseFloat(document.getElementById("settleTotalDueVal").value || 0);
+      const paidNow = parseFloat(document.getElementById("settleActualPaidInput").value || 0);
+      const carryForward = Math.max(0, totalDue - paidNow);
+      document.getElementById("settleCarryForwardPreview").textContent = "₹" + carryForward.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    }
+
+    async function handleExecuteSettlement(event) {
+      event.preventDefault();
+      const staffId = document.getElementById("settleStaffId").value;
+      const project = document.getElementById("settleProjectVal").value;
+      const baseSalary = parseFloat(document.getElementById("settleBaseSalaryVal").value);
+      const taClaims = parseFloat(document.getElementById("settlePendingTAVal").value);
+      const actualPaid = parseFloat(document.getElementById("settleActualPaidInput").value);
+      const month = document.getElementById("settleMonthPeriod").value;
+      const mode = document.getElementById("settlePayMode").value;
+      const ref = document.getElementById("settleRefNo").value;
+      const notes = document.getElementById("settleNotes").value;
+
+      await fetch("/api/settlements/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          staff_id: staffId,
+          project: project,
+          month_period: month,
+          salary_entitlement: baseSalary,
+          accumulated_ta_claims: taClaims,
+          actual_amount_paid_now: actualPaid,
+          payment_mode: mode,
+          reference_number: ref,
+          notes: notes,
+          settled_by: currentUser.id
+        })
+      });
+
+      closeModal("settlementModal");
+      await fetchAllData();
+      alert("Settlement executed successfully! Unpaid portion carries forward as pending dues.");
+    }
+
+    // DUAL APPROVALS & STAFF RELIEVING
+    function renderApprovals() {
+      const container = document.getElementById("approvalsList");
+      const pending = allApprovals.filter(a => a.status === "PENDING");
+      document.getElementById("pendingApprovalsCount").textContent = pending.length;
+
+      const dot = document.getElementById("navApprovalDot");
+      if (pending.length > 0) dot.classList.remove("hidden");
+      else dot.classList.add("hidden");
+
+      if (allApprovals.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs bg-white rounded-2xl border">No pending approval requests.</div>`;
+        return;
+      }
+
+      container.innerHTML = allApprovals.map(a => {
+        const isPending = a.status === "PENDING";
+        const canApprove = isPending && a.requested_by !== currentUser.id;
+
+        return `
+          <div class="bg-white border ${isPending ? 'border-amber-300 ring-1 ring-amber-100' : 'border-slate-200'} rounded-2xl p-3.5 space-y-2 shadow-xs">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded ${isPending ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+                  ${a.status}
+                </span>
+                <h4 class="font-bold text-slate-800 text-xs mt-1.5">${a.action_label}</h4>
+                <p class="text-[10px] text-slate-500">Initiated by <b class="text-slate-700">${a.requester_name}</b></p>
+              </div>
+              <span class="text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded font-black">
+                OTP: ${a.otp_code}
+              </span>
+            </div>
+
+            ${isPending ? `
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                ${canApprove ? `
+                  <button onclick="openApprovalModal('${a.id}', '${a.action_label}', '${a.requester_name}', '${a.otp_code}')" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1">
+                    <i data-lucide="key" class="w-3.5 h-3.5"></i> Verify & Approve with PIN
+                  </button>
+                ` : `
+                  <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                    Awaiting another staff member to approve.
+                  </span>
+                `}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function openApprovalModal(id, label, requester, otp) {
+      document.getElementById("activeApprovalId").value = id;
+      document.getElementById("approvalActionTitle").textContent = label;
+      document.getElementById("approvalRequesterName").textContent = requester;
+      document.getElementById("approvalOtpDisplay").textContent = otp;
+      document.getElementById("approvalPinInput").value = "";
+
+      document.getElementById("approvalActionModal").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    async function submitApprovalDecision(decision) {
+      const approvalId = document.getElementById("activeApprovalId").value;
+      const pin = document.getElementById("approvalPinInput").value;
+      if (!pin) {
+        alert("Please enter your 6-digit staff security PIN (default: 123456)");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/approvals/resolve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            approval_id: approvalId,
+            resolved_by: currentUser.id,
+            decision: decision,
+            pin: pin
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || "Approval failed");
+          return;
+        }
+
+        closeModal("approvalActionModal");
+        await fetchAllData();
+        alert(`Request ${decision} successfully!`);
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    }
+
+    // STAFF DIRECTORY & RELIEVING (DEACTIVATION)
+    function renderStaffDirectory() {
+      const container = document.getElementById("staffDirectoryList");
+      container.innerHTML = allStaff.map(s => {
+        const isMe = s.id === currentUser.id;
+        const isActive = s.status === 'ACTIVE';
+
+        return `
+          <div class="bg-white border border-slate-200 rounded-2xl p-3 flex justify-between items-center shadow-xs">
+            <div>
+              <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                <span>${s.full_name}</span>
+                <span class="text-[9px] font-black px-1.5 py-0.2 rounded ${s.project === 'CSA' ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">${s.project}</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded font-bold ${isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">${s.status}</span>
+              </div>
+              <p class="text-[10px] text-slate-500">${s.designation} • Fixed: ₹${s.fixed_salary.toLocaleString('en-IN')}</p>
+            </div>
+
+            <div>
+              ${(!isMe && isActive) ? `
+                <button onclick="promptRelieveStaff('${s.id}', '${s.full_name}')" class="text-rose-600 hover:text-rose-700 bg-rose-50 border border-rose-200 px-2 py-1 rounded-lg text-[10px] font-bold">
+                  Relieve Staff
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function promptRelieveStaff(staffId, staffName) {
+      const reason = prompt(`Enter reason for relieving / deactivating ${staffName} (Requires peer approval):`);
+      if (!reason) return;
+
+      const res = await fetch("/api/staff/request-relieve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target_staff_id: staffId,
+          requested_by: currentUser.id,
+          reason: reason
+        })
+      }).then(r => r.json());
+
+      alert(`Relieving request created! Verification OTP: ${res.otp}\nAnother staff member must approve to finalize deactivation.`);
+      await fetchAllData();
+      switchTab('approvals');
+    }
+
+    // Transactions Add / Delete
+    function openAddTransactionModal(defaultType = 'INCOME') {
+      document.getElementById("txModalTitle").textContent = "Record Transaction";
+      document.getElementById("editTxId").value = "";
+      document.getElementById("txProjectInput").value = currentUser.project || "CSA";
+      document.getElementById("txTypeInput").value = defaultType;
+      document.getElementById("txAmountInput").value = "";
+      document.getElementById("txDescInput").value = "";
+      document.getElementById("txDateInput").valueAsDate = new Date();
+      pendingUploadedDocs = [];
+      document.getElementById("fileCompressionPreview").innerHTML = "";
+
+      updateCategoryDropdown();
+      document.getElementById("txModal").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function updateCategoryDropdown() {
+      const type = document.getElementById("txTypeInput").value;
+      const catSelect = document.getElementById("txCategoryInput");
+
+      catSelect.innerHTML = "";
+      const filtered = allCategories.filter(c => c.category_type === type);
+      filtered.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.name;
+        catSelect.appendChild(opt);
+      });
+    }
+
+    async function handleSaveTransaction(event) {
+      event.preventDefault();
+      const proj = document.getElementById("txProjectInput").value;
+      const type = document.getElementById("txTypeInput").value;
+      const catId = document.getElementById("txCategoryInput").value;
+      const amount = parseFloat(document.getElementById("txAmountInput").value);
+      const dateVal = document.getElementById("txDateInput").value;
+      const desc = document.getElementById("txDescInput").value;
+
+      await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transaction_date: dateVal,
+          project: proj,
+          transaction_type: type,
+          category_id: catId,
+          amount: amount,
+          description: desc,
+          created_by: currentUser.id,
+          staff_id: type === "FIELD_EXPENSE" ? currentUser.id : null,
+          documents: pendingUploadedDocs
+        })
+      });
+
+      closeModal("txModal");
+      await fetchAllData();
+    }
+
+    async function handleDeleteTransaction(id) {
+      const reason = prompt("Enter reason for deletion (this will be logged with IST and notified to team):");
+      if (!reason) return;
+
+      const res = await fetch(`/api/transactions/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deleted_by: currentUser.id,
+          reason: reason
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.detail || "Delete failed");
+        return;
+      }
+      await fetchAllData();
+    }
+
+    // Client-side image compression
+    async function compressImageFile(file) {
+      return new Promise((resolve) => {
+        if (!file.type.startsWith("image/")) {
+          resolve({ file: file, isCompressed: false });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 1200;
+
+            if (width > height && width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                type: "image/jpeg",
+                lastModified: Date.now()
+              });
+              resolve({
+                file: compressedFile,
+                isCompressed: true,
+                origSize: (file.size / 1024).toFixed(1),
+                compSize: (compressedFile.size / 1024).toFixed(1)
+              });
+            }, "image/jpeg", 0.72);
+          };
+        };
+      });
+    }
+
+    async function handleFileSelection(event) {
+      const files = Array.from(event.target.files);
+      const previewDiv = document.getElementById("fileCompressionPreview");
+      previewDiv.innerHTML = `<span class="text-emerald-700 font-bold flex items-center gap-1"><i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Compressing ${files.length} document(s)...</span>`;
+      lucide.createIcons();
+
+      pendingUploadedDocs = [];
+      let previewHTML = "";
+
+      for (const file of files) {
+        const result = await compressImageFile(file);
+        const formData = new FormData();
+        formData.append("file", result.file);
+        formData.append("uploaded_by", currentUser.id);
+
+        const uploadRes = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData
+        }).then(r => r.json());
+
+        pendingUploadedDocs.push(uploadRes);
+
+        previewHTML += `
+          <div class="flex items-center justify-between bg-white p-1.5 rounded border border-emerald-200">
+            <span class="truncate max-w-[200px]">${uploadRes.file_name}</span>
+            <span class="text-[10px] font-mono font-bold text-emerald-700">
+              ${result.isCompressed ? `${result.origSize}KB ➔ ${uploadRes.compressed_size_kb}KB` : `${uploadRes.compressed_size_kb}KB`}
+            </span>
+          </div>
+        `;
+      }
+
+      previewDiv.innerHTML = previewHTML;
+    }
+
+    // Notifications
+    function renderNotificationsBadge() {
+      const unread = allNotifications.filter(n => !n.is_read);
+      const badge = document.getElementById("notifBadge");
+      if (unread.length > 0) badge.classList.remove("hidden");
+      else badge.classList.add("hidden");
+    }
+
+    function openNotificationsModal() {
+      const feed = document.getElementById("notifFeedList");
+      if (allNotifications.length === 0) {
+        feed.innerHTML = `<p class="text-xs text-slate-400 p-4 text-center">No notifications.</p>`;
+      } else {
+        feed.innerHTML = allNotifications.map(n => `
+          <div class="p-2.5 rounded-2xl border ${n.is_read ? 'bg-slate-50 border-slate-200 text-slate-600' : 'bg-emerald-50 border-emerald-200 text-emerald-950'} space-y-0.5">
+            <div class="flex justify-between items-center font-bold text-xs">
+              <span>${n.title}</span>
+              <span class="text-[9px] text-slate-400 font-mono">${n.created_at_formatted || n.created_at}</span>
+            </div>
+            <p class="text-[11px]">${n.message}</p>
+          </div>
+        `).join('');
+      }
+      document.getElementById("notifModal").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    async function markAllNotificationsRead() {
+      await fetch("/api/notifications/mark-read", { method: "POST" });
+      await fetchAllData();
+      closeModal("notifModal");
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
