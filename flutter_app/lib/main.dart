@@ -1,96 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-// Supabase Configuration
-const String supabaseUrl = 'YOUR_SUPABASE_PROJECT_URL';
-const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+import 'screens/login_screen.dart';
+import 'screens/main_screen.dart';
+import 'services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Supabase if keys provided
-  if (supabaseUrl != 'YOUR_SUPABASE_PROJECT_URL') {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-    );
-  }
 
-  runApp(const NGOFinanceApp());
+  // Initialize API service and load cached session & URL
+  final apiService = ApiService();
+  await apiService.init();
+
+  runApp(MoneyMateNgoApp(isLoggedIn: apiService.isLoggedIn));
 }
 
-class NGOFinanceApp extends StatelessWidget {
-  const NGOFinanceApp({super.key});
+class MoneyMateNgoApp extends StatelessWidget {
+  final bool isLoggedIn;
+
+  const MoneyMateNgoApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
+    const primaryEmerald = Color(0xFF047857);
+    const secondaryTeal = Color(0xFF0F766E);
+    const darkSlate = Color(0xFF1E293B);
+
     return MaterialApp(
-      title: 'MoneyMate NGO Finance',
+      title: 'MoneyMate NGO',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF047857), // Emerald Green
-          primary: const Color(0xFF047857),
-          secondary: const Color(0xFF0F766E),
-        ),
         useMaterial3: true,
-        fontFamily: 'Roboto',
-      ),
-      home: const MobileMainScreen(),
-    );
-  }
-}
-
-class MobileMainScreen extends StatefulWidget {
-  const MobileMainScreen({super.key});
-
-  @override
-  State<MobileMainScreen> createState() => _MobileMainScreenState();
-}
-
-class _MobileMainScreenState extends State<MobileMainScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
-    Center(child: Text("ഡാഷ്‌ബോർഡ് (ഹോം)", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-    Center(child: Text("ഇടപാടുകൾ (Transactions)", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-    Center(child: Text("സ്റ്റാഫ് ഫീൽഡ് സെറ്റിൽമെന്റ്", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-    Center(child: Text("ഡ്യുവൽ അപ്രൂവൽ (OTP സുരക്ഷ)", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-    Center(child: Text("റിപ്പോർട്ടുകൾ & ബാക്കപ്പ്", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("MoneyMate NGO", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-            Text("5-Staff Financial System", style: TextStyle(fontSize: 11, color: Colors.white70)),
-          ],
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryEmerald,
+          primary: primaryEmerald,
+          secondary: secondaryTeal,
+          surface: Colors.white,
+          onSurface: darkSlate,
+          background: const Color(0xFFF8FAFC),
         ),
-        backgroundColor: const Color(0xFF047857),
-        elevation: 2,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-            onPressed: () {},
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        fontFamily: 'Roboto',
+        appBarTheme: const AppBarTheme(
+          backgroundColor: primaryEmerald,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          elevation: 4,
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: primaryEmerald,
+              );
+            }
+            return const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            );
+          }),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
           ),
-        ],
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: primaryEmerald, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        ),
+        cardTheme: CardTheme(
+          color: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryEmerald,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
       ),
-      body: _screens[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.dashboard_outlined), label: "ഹോം"),
-          NavigationDestination(icon: Icon(Icons.receipt_long_outlined), label: "ഇടപാടുകൾ"),
-          NavigationDestination(icon: Icon(Icons.wallet_outlined), label: "സെറ്റിൽമെന്റ്"),
-          NavigationDestination(icon: Icon(Icons.shield_outlined), label: "OTP സുരക്ഷ"),
-          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), label: "റിപ്പോർട്ടുകൾ"),
-        ],
-      ),
+      home: isLoggedIn ? const MainScreen() : const LoginScreen(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/main': (context) => const MainScreen(),
+      },
     );
   }
 }
