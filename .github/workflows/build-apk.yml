@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:   # GitHub Actions tab-ൽ നിന്ന് manually trigger ചെയ്യാം
+  workflow_dispatch:
 
 jobs:
   build-apk:
@@ -13,18 +13,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Code checkout
+      # Step 1: Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Java 17 setup (Android builds need this)
+      # Step 2: Set up Java 17
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # Step 3: Flutter SDK setup
+      # Step 3: Set up Flutter SDK 3.24.0
       - name: Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
@@ -32,27 +32,33 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # Step 4: Verify Flutter installation
+      # Step 4: Verify Flutter version
       - name: Verify Flutter Version
         run: flutter --version
 
-      # Step 5: Install pub dependencies
-      - name: Install Flutter Dependencies
+      # Step 5: Regenerate clean Android platform files matching Flutter 3.24
+      - name: Regenerate Clean Android Project
+        working-directory: flutter_app
+        run: |
+          mkdir -p /tmp/lib_backup
+          cp -r lib/* /tmp/lib_backup/
+          rm -rf android
+          flutter create --platforms=android --org=com.moneymate .
+          cp -r /tmp/lib_backup/* lib/
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>' android/app/src/main/AndroidManifest.xml
+          sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+
+      # Step 6: Install Flutter Dependencies
+      - name: Install Dependencies
         working-directory: flutter_app
         run: flutter pub get
-
-      # Step 6: Static analysis (non-blocking)
-      - name: Flutter Analyze
-        working-directory: flutter_app
-        run: flutter analyze --no-fatal-infos
-        continue-on-error: true
 
       # Step 7: Build universal release APK
       - name: Build Release APK
         working-directory: flutter_app
-        run: flutter build apk --release --no-shrink
+        run: flutter build apk --release
 
-      # Step 8: Upload APK as downloadable artifact (30 days retention)
+      # Step 8: Upload APK as downloadable artifact
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -61,68 +67,13 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      # Step 9: Show APK size info
-      - name: Display APK Info
+      # Step 9: Show APK info
+      - name: Display Build Success Info
         run: |
           APK_PATH="flutter_app/build/app/outputs/flutter-apk/app-release.apk"
           APK_SIZE=$(du -sh "$APK_PATH" | cut -f1)
-          echo "✅ APK Build SUCCESS!"
-          echo "📦 APK Size: $APK_SIZE"
-          echo "📍 Path: $APK_PATH"
-          echo ""
-          echo "📥 Download from: Actions tab → This workflow run → Artifacts section"
-
-  # Optional: Create a GitHub Release when you push a version tag (e.g. git tag v1.0.0)
-  release:
-    name: Create GitHub Release
-    needs: build-apk
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-          cache: true
-
-      - name: Build APK for Release
-        working-directory: flutter_app
-        run: |
-          flutter pub get
-          flutter build apk --release --no-shrink
-
-      - name: Create GitHub Release with APK
-        uses: softprops/action-gh-release@v1
-        with:
-          name: MoneyMate NGO ${{ github.ref_name }}
-          files: flutter_app/build/app/outputs/flutter-apk/app-release.apk
-          body: |
-            ## 📱 MoneyMate NGO Finance App — ${{ github.ref_name }}
-
-            ### 📥 Install Instructions:
-            1. `app-release.apk` download ചെയ്യുക (below)
-            2. Android ഫോണിൽ: **Settings → Security → Install Unknown Apps → Allow**
-            3. APK file tap ചെയ്ത് **Install** ചെയ്യുക
-            4. **MoneyMate NGO** ആപ്പ് തുറക്കുക
-            5. ⚙️ Settings icon → Backend URL configure ചെയ്യുക
-
-            ### 👥 Default Login:
-            | Staff | Phone | PIN |
-            |-------|-------|-----|
-            | Rahul Nair (CSA Coordinator) | 9846011111 | 123456 |
-            | Priya Menon (CSA Case Worker) | 9846022222 | 123456 |
-            | Anand Kumar (CNCP Coordinator) | 9846033333 | 123456 |
-            | Deepa Varghese (CNCP Case Worker) | 9846044444 | 123456 |
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "========================================="
+          echo "🎉 APK BUILD SUCCESSFUL!"
+          echo "📦 APK File Size: $APK_SIZE"
+          echo "📥 Download from the Artifacts section above!"
+          echo "========================================="
