@@ -205,7 +205,7 @@ class LedgerScreenState extends State<LedgerScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Staff Selector: locked to logged-in user for regular staff, selectable for admin/treasurer
-                if (_apiService.currentUser != null && _apiService.currentUser!.role == 'STAFF')
+                if (_apiService.currentUser != null && !_apiService.currentUser!.isCoordinator)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
