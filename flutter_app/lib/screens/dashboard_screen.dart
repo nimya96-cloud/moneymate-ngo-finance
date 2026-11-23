@@ -147,9 +147,9 @@ class DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 10),
 
-            // Consolidated Total Card
-            _buildConsolidatedCard(stats),
-            const SizedBox(height: 14),
+            // Consolidated Total Card (Hidden)
+            // _buildConsolidatedCard(stats),
+            // const SizedBox(height: 14),
 
             // Unsettled TA Warning Banner
             if (stats.totalUnsettledTa > 0) ...[

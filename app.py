@@ -763,7 +763,7 @@ def create_transaction(tx: TransactionCreate):
         "amount": tx.amount,
         "description": tx.description,
         "created_by": tx.created_by,
-        "staff_id": tx.staff_id if tx.transaction_type == "FIELD_EXPENSE" else None,
+        "staff_id": tx.created_by if tx.transaction_type == "FIELD_EXPENSE" else None,
         "is_settled": False,
         "settlement_id": None,
         "is_deleted": False,
@@ -895,7 +895,9 @@ def get_pending_settlement_summary(project: Optional[str] = None):
             and not t.get("is_deleted", False)
         ]
         
-        ta_total = sum(float(t.get("amount", 0.0)) for t in unsettled_claims)
+        previous_ta_due = float(staff.get("pending_ta_due", 0.0))
+        current_ta_claims = sum(float(t.get("amount", 0.0)) for t in unsettled_claims)
+        ta_total = previous_ta_due + current_ta_claims
         fixed_salary = float(staff.get("fixed_salary", 0.0))
         previous_salary_due = float(staff.get("pending_salary_due", 0.0))
         
@@ -910,6 +912,7 @@ def get_pending_settlement_summary(project: Optional[str] = None):
             "whatsapp_number": staff["whatsapp_number"],
             "fixed_salary": fixed_salary,
             "previous_salary_due": previous_salary_due,
+            "previous_ta_due": previous_ta_due,
             "current_unsettled_ta_claims_count": len(unsettled_claims),
             "current_unsettled_ta_total": ta_total,
             "total_due_payable": total_due,
@@ -939,7 +942,8 @@ def execute_settlement(req: SettlementRequest):
         and not t.get("is_settled", False)
         and not t.get("is_deleted", False)
     ]
-    actual_ta_sum = sum(float(t.get("amount", 0.0)) for t in unsettled_claims)
+    previous_ta_due = float(staff.get("pending_ta_due", 0.0))
+    actual_ta_sum = previous_ta_due + sum(float(t.get("amount", 0.0)) for t in unsettled_claims)
     
     # Total entitlement for this settlement
     prev_salary_due = float(staff.get("pending_salary_due", 0.0))
@@ -981,8 +985,9 @@ def execute_settlement(req: SettlementRequest):
     }
     data["settlements"].insert(0, settlement_record)
     
-    # Update staff's pending salary balance
-    staff["pending_salary_due"] = new_pending_salary_due
+    # Update staff's pending salary and pending TA balance
+    staff["pending_salary_due"] = round(new_pending_salary_due, 2)
+    staff["pending_ta_due"] = round(new_pending_ta_due, 2)
     
     # Mark the field claims as settled
     for t in unsettled_claims:
@@ -1052,69 +1057,155 @@ def get_staff_ledger(
     if not staff:
         raise HTTPException(status_code=404, detail="Staff member not found")
         
-    # Gather:
-    # 1. All field expense claims made by this staff
-    # 2. All settlement payouts made to this staff
-    entries = []
+    all_raw_entries = []
     
-    for t in data["transactions"]:
-        if t.get("is_deleted", False):
-            continue
-        if t.get("staff_id") == staff_id or (t.get("created_by") == staff_id and t.get("transaction_type") == "FIELD_EXPENSE"):
-            t_date = t.get("transaction_date", "")
-            if start_date and t_date < start_date:
-                continue
-            if end_date and t_date > end_date:
-                continue
-                
-            entries.append({
-                "date": t_date,
-                "type": t.get("transaction_type"),
-                "project": t.get("project"),
-                "description": t.get("description"),
-                "amount": float(t.get("amount", 0.0)),
-                "is_settled": t.get("is_settled", False),
-                "voucher_id": t.get("id"),
-                "is_credit_payout": t.get("category_id") == "cat_exp_3"
-            })
-            
-    # Include settlement logs
-    for s in data["settlements"]:
+    # 1. Monthly Settlement records: Entitlement + Payout
+    for s in data.get("settlements", []):
         if s.get("staff_id") == staff_id:
             s_date = s.get("settlement_date", "")
-            if start_date and s_date < start_date:
-                continue
-            if end_date and s_date > end_date:
-                continue
-            entries.append({
-                "date": s_date,
-                "type": "SETTLEMENT_RECORD",
-                "project": s.get("project"),
-                "description": f"Salary & TA Settlement ({s.get('month_period')}) - Ref: {s.get('reference_number', 'N/A')}",
-                "amount": float(s.get("actual_amount_paid", 0.0)),
-                "is_settled": True,
-                "voucher_id": s.get("id"),
-                "is_credit_payout": True,
-                "settlement_details": s
-            })
+            period = s.get("month_period", "")
+            # Monthly Salary Entitlement
+            entitlement = float(s.get("salary_entitlement", 0.0))
+            if entitlement > 0:
+                all_raw_entries.append({
+                    "date": s_date,
+                    "order_key": 0, # Entitlement / dues registered before payouts
+                    "type": "SALARY_ENTITLEMENT",
+                    "project": s.get("project", staff.get("project", "CSA")),
+                    "description": f"Salary Entitlement ({period})",
+                    "due_amount": entitlement,
+                    "paid_amount": 0.0,
+                    "amount": entitlement,
+                    "is_credit_payout": False,
+                    "is_settled": float(s.get("pending_salary_carry_forward", 0.0)) == 0,
+                    "status": "Settled" if float(s.get("pending_salary_carry_forward", 0.0)) == 0 else f"Partial (Pending: ₹{s.get('pending_salary_carry_forward', 0.0):,.2f})",
+                    "voucher_id": s.get("id"),
+                    "settlement_details": s
+                })
             
-    # Sort chronologically
-    entries.sort(key=lambda x: x["date"])
-    
-    total_claims = sum(e["amount"] for e in entries if not e.get("is_credit_payout") and e["type"] == "FIELD_EXPENSE")
-    total_paid = sum(e["amount"] for e in entries if e.get("is_credit_payout"))
-    
+            # Payout
+            actual_paid = float(s.get("actual_amount_paid", 0.0))
+            if actual_paid > 0:
+                p_mode = s.get("payment_mode", "Bank Transfer")
+                ref = f" - Ref: {s['reference_number']}" if s.get("reference_number") else ""
+                carry_info = ""
+                if float(s.get("pending_salary_carry_forward", 0.0)) > 0 or float(s.get("pending_ta_carry_forward", 0.0)) > 0:
+                    tot_carry = float(s.get("pending_salary_carry_forward", 0.0)) + float(s.get("pending_ta_carry_forward", 0.0))
+                    carry_info = f" [Pending Carry-Forward: ₹{tot_carry:,.2f}]"
+                all_raw_entries.append({
+                    "date": s_date,
+                    "order_key": 1, # payouts registered after dues on same day
+                    "type": "PAYOUT",
+                    "project": s.get("project", staff.get("project", "CSA")),
+                    "description": f"Salary & TA Payout ({period}) - {p_mode}{ref}{carry_info}",
+                    "due_amount": 0.0,
+                    "paid_amount": actual_paid,
+                    "amount": actual_paid,
+                    "is_credit_payout": True,
+                    "is_settled": True,
+                    "status": "Disbursed",
+                    "voucher_id": s.get("id"),
+                    "settlement_details": s
+                })
+
+    # 2. Field TA claims from transactions
+    for t in data.get("transactions", []):
+        if t.get("is_deleted", False):
+            continue
+        if (t.get("staff_id") == staff_id or (t.get("created_by") == staff_id and t.get("transaction_type") == "FIELD_EXPENSE")):
+            if t.get("transaction_type") == "FIELD_EXPENSE":
+                t_date = t.get("transaction_date", "")
+                all_raw_entries.append({
+                    "date": t_date,
+                    "order_key": 0,
+                    "type": "FIELD_TA",
+                    "project": t.get("project", staff.get("project", "CSA")),
+                    "description": f"Field TA: {t.get('description', '')}",
+                    "due_amount": float(t.get("amount", 0.0)),
+                    "paid_amount": 0.0,
+                    "amount": float(t.get("amount", 0.0)),
+                    "is_credit_payout": False,
+                    "is_settled": t.get("is_settled", False),
+                    "status": "Settled" if t.get("is_settled", False) else "Pending Claim",
+                    "voucher_id": t.get("id"),
+                    "settlement_details": None
+                })
+            # Any manual payout not linked to settlement
+            elif t.get("category_id") == "cat_exp_3" and not t.get("settlement_id"):
+                t_date = t.get("transaction_date", "")
+                all_raw_entries.append({
+                    "date": t_date,
+                    "order_key": 1,
+                    "type": "PAYOUT",
+                    "project": t.get("project", staff.get("project", "CSA")),
+                    "description": t.get("description", "Direct Salary Disbursement"),
+                    "due_amount": 0.0,
+                    "paid_amount": float(t.get("amount", 0.0)),
+                    "amount": float(t.get("amount", 0.0)),
+                    "is_credit_payout": True,
+                    "is_settled": True,
+                    "status": "Disbursed",
+                    "voucher_id": t.get("id"),
+                    "settlement_details": None
+                })
+
+    # Sort all entries chronologically
+    all_raw_entries.sort(key=lambda x: (x["date"], x["order_key"]))
+
+    # Calculate cumulative running balance
+    running_balance = 0.0
+    opening_balance = 0.0
+    filtered_entries = []
+
+    for e in all_raw_entries:
+        if not e["is_credit_payout"]:
+            running_balance += e["due_amount"]
+        else:
+            running_balance -= e["paid_amount"]
+        e["running_balance"] = round(running_balance, 2)
+
+        e_date = e["date"]
+        if start_date and e_date < start_date:
+            opening_balance = running_balance
+            continue
+        if end_date and e_date > end_date:
+            continue
+        filtered_entries.append(e)
+
+    total_due_in_period = sum(e["due_amount"] for e in filtered_entries)
+    total_paid_in_period = sum(e["paid_amount"] for e in filtered_entries)
+    total_claims_in_period = sum(e["due_amount"] for e in filtered_entries if e["type"] == "FIELD_TA")
+
+    # Current pending balances on the staff account
+    current_pending_salary_due = float(staff.get("pending_salary_due", 0.0))
+    current_pending_ta_due = float(staff.get("pending_ta_due", 0.0))
+    current_unsettled_claims = [
+        t for t in data["transactions"]
+        if t.get("transaction_type") == "FIELD_EXPENSE"
+        and t.get("staff_id") == staff_id
+        and not t.get("is_settled", False)
+        and not t.get("is_deleted", False)
+    ]
+    unsettled_claims_sum = sum(float(t.get("amount", 0.0)) for t in current_unsettled_claims)
+    total_unsettled_ta = current_pending_ta_due + unsettled_claims_sum
+    total_current_pending = current_pending_salary_due + total_unsettled_ta
+
     return {
         "staff_id": staff_id,
         "staff_name": staff["full_name"],
-        "project": staff.get("project"),
+        "project": staff.get("project", "CSA"),
         "designation": staff["designation"],
         "whatsapp_number": staff["whatsapp_number"],
-        "fixed_salary": staff["fixed_salary"],
-        "current_pending_salary_due": staff.get("pending_salary_due", 0.0),
-        "total_claims_in_period": total_claims,
-        "total_paid_in_period": total_paid,
-        "entries": entries
+        "fixed_salary": float(staff.get("fixed_salary", 0.0)),
+        "opening_balance": round(opening_balance, 2),
+        "current_pending_salary_due": round(current_pending_salary_due, 2),
+        "current_pending_ta_due": round(total_unsettled_ta, 2),
+        "total_current_pending_due": round(total_current_pending, 2),
+        "total_due_in_period": round(total_due_in_period, 2),
+        "total_claims_in_period": round(total_claims_in_period, 2),
+        "total_paid_in_period": round(total_paid_in_period, 2),
+        "closing_balance": round(running_balance, 2),
+        "entries": filtered_entries
     }
 
 # ==============================================================

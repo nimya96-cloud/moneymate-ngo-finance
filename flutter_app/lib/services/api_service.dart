@@ -344,7 +344,7 @@ class ApiService {
         'transaction_date': transactionDate,
         'description': description.trim(),
         'created_by': _currentUser!.id,
-        'staff_id': transactionType.toUpperCase() == 'FIELD_EXPENSE' ? (staffId ?? _currentUser!.id) : null,
+        'staff_id': transactionType.toUpperCase() == 'FIELD_EXPENSE' ? _currentUser!.id : null,
         'documents': documents ?? [],
       };
 

@@ -156,10 +156,13 @@ class LedgerScreenState extends State<LedgerScreen> {
                 Text('Phone: +91 ${ledger.whatsappNumber}', style: const TextStyle(fontSize: 12)),
                 const Divider(height: 16),
                 Text('Statement Summary:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text('• Total Claims (Dr): ${formatCurrency(ledger.totalClaimsInPeriod)}'),
+                Text('• Total Entitlement & Claims (Dr): ${formatCurrency(ledger.totalDueInPeriod > 0 ? ledger.totalDueInPeriod : ledger.totalClaimsInPeriod)}'),
                 Text('• Total Disbursed (Cr): ${formatCurrency(ledger.totalPaidInPeriod)}'),
-                Text('• Net Statement Balance: ${formatCurrency(ledger.netOutstanding)}'),
-                Text('• Current Pending Salary Due: ${formatCurrency(ledger.currentPendingSalaryDue)}'),
+                Text('• Total Current Pending Due: ${formatCurrency(ledger.totalCurrentPendingDue)}'),
+                if (ledger.currentPendingSalaryDue > 0)
+                  Text('  - Pending Salary Carry-Forward: ${formatCurrency(ledger.currentPendingSalaryDue)}'),
+                if (ledger.currentPendingTaDue > 0)
+                  Text('  - Pending Field TA Claims: ${formatCurrency(ledger.currentPendingTaDue)}'),
                 const Divider(height: 16),
                 Text('Total Entries: ${ledger.entries.length} transactions included.'),
               ],
@@ -201,8 +204,56 @@ class LedgerScreenState extends State<LedgerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Staff Dropdown
-                if (_isLoadingStaff)
+                // Staff Selector: locked to logged-in user for regular staff, selectable for admin/treasurer
+                if (_apiService.currentUser != null && _apiService.currentUser!.role == 'STAFF')
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFFF8FAFC),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.account_balance_wallet_rounded, size: 22, color: Color(0xFF047857)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'My Salary & TA Ledger: ${_apiService.currentUser!.fullName}',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                              ),
+                              Text(
+                                '${_apiService.currentUser!.designation} • ${_apiService.currentUser!.project} Project',
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.lock, size: 12, color: Color(0xFF475569)),
+                              SizedBox(width: 4),
+                              Text(
+                                'My Account',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (_isLoadingStaff)
                   const Center(child: LinearProgressIndicator(color: Color(0xFF047857)))
                 else
                   Container(
@@ -478,56 +529,97 @@ class LedgerScreenState extends State<LedgerScreen> {
           ),
           const Divider(height: 20),
 
-          // 3 Metric Boxes: Total Claims Dr, Total Paid Cr, Net Outstanding
+          // 3 Metric Boxes: Total Entitlements Dr, Total Paid Cr, Pending Due
           Row(
             children: [
               Expanded(
                 child: _buildMetricTile(
-                  title: 'Total Claims (Dr)',
-                  value: formatCurrency(ledger.totalClaimsInPeriod),
+                  title: 'Entitled & Claims (Dr)',
+                  value: formatCurrency(ledger.totalDueInPeriod > 0 ? ledger.totalDueInPeriod : ledger.totalClaimsInPeriod),
                   color: Colors.blue.shade900,
-                  subtext: 'Field TA claims',
+                  subtext: 'Salary + TA dues',
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildMetricTile(
-                  title: 'Total Paid (Cr)',
+                  title: 'Disbursed (Cr)',
                   value: formatCurrency(ledger.totalPaidInPeriod),
                   color: const Color(0xFF047857),
-                  subtext: 'Disbursed dues',
+                  subtext: 'Amount paid',
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildMetricTile(
-                  title: 'Net Period Diff',
-                  value: formatCurrency(ledger.netOutstanding),
-                  color: ledger.netOutstanding > 0 ? Colors.red.shade800 : Colors.grey.shade800,
-                  subtext: 'Dr vs Cr balance',
+                  title: 'Pending Due (ബാക്കി)',
+                  value: formatCurrency(ledger.totalCurrentPendingDue),
+                  color: ledger.totalCurrentPendingDue > 0 ? Colors.red.shade800 : const Color(0xFF047857),
+                  subtext: ledger.totalCurrentPendingDue > 0 ? 'Remaining payable' : 'Fully settled',
                 ),
               ),
             ],
           ),
 
-          if (ledger.currentPendingSalaryDue > 0) ...[
+          if (ledger.totalCurrentPendingDue > 0) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.amber.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.account_balance_wallet_rounded, size: 18, color: Colors.amber.shade900),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'ആകെ നൽകാൻ ബാക്കി: ${formatCurrency(ledger.totalCurrentPendingDue)}',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  if (ledger.currentPendingSalaryDue > 0)
+                    Text(
+                      '• Carry-Forward Salary Due: ${formatCurrency(ledger.currentPendingSalaryDue)}',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.amber.shade900),
+                    ),
+                  if (ledger.currentPendingTaDue > 0)
+                    Text(
+                      '• Pending Field TA Claims: ${formatCurrency(ledger.currentPendingTaDue)}',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.amber.shade900),
+                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'ഫണ്ട് വരുന്ന മുറയ്ക്ക് അതാത് മാസം വരെയുള്ള ബാക്കി തുക അനുവദിക്കുന്നതാണ്.',
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade700, fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
+                color: Colors.green.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade300),
+                border: Border.all(color: Colors.green.shade200),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: Colors.amber.shade900),
+                  Icon(Icons.check_circle_rounded, size: 16, color: Colors.green.shade700),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Unpaid Carry-Forward Salary Due: ${formatCurrency(ledger.currentPendingSalaryDue)}',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
-                    ),
+                  Text(
+                    'Dues Fully Settled (No Pending Balance)',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green.shade800),
                   ),
                 ],
               ),
@@ -587,12 +679,21 @@ class LedgerScreenState extends State<LedgerScreen> {
             columns: const [
               DataColumn(label: Text('Date')),
               DataColumn(label: Text('Particulars')),
-              DataColumn(label: Text('TA Claim (Dr)')),
+              DataColumn(label: Text('Entitled / Claim (Dr)')),
               DataColumn(label: Text('Paid Out (Cr)')),
+              DataColumn(label: Text('Pending Balance')),
               DataColumn(label: Text('Status')),
             ],
             rows: entries.map((e) {
               final isCr = e.isCreditPayout;
+              final isDue = e.dueAmount > 0;
+              final isPaid = e.paidAmount > 0;
+              final isSettled = e.isSettled;
+
+              Color statusBg = isSettled ? Colors.green.shade50 : Colors.amber.shade50;
+              Color statusBorder = isSettled ? Colors.green.shade200 : Colors.amber.shade200;
+              Color statusText = isSettled ? Colors.green.shade800 : Colors.amber.shade900;
+
               return DataRow(
                 cells: [
                   DataCell(
@@ -603,32 +704,52 @@ class LedgerScreenState extends State<LedgerScreen> {
                   ),
                   DataCell(
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 160),
-                      child: Text(
-                        e.description,
-                        style: const TextStyle(fontSize: 11),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            e.description,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                          Text(
+                            e.type,
+                            style: TextStyle(fontSize: 9, color: Colors.grey.shade500),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   DataCell(
                     Text(
-                      !isCr ? formatCurrency(e.amount) : '—',
+                      isDue ? formatCurrency(e.dueAmount) : '—',
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: !isCr ? FontWeight.bold : FontWeight.normal,
-                        color: !isCr ? Colors.blue.shade900 : Colors.grey,
+                        fontWeight: isDue ? FontWeight.bold : FontWeight.normal,
+                        color: isDue ? Colors.blue.shade900 : Colors.grey,
                       ),
                     ),
                   ),
                   DataCell(
                     Text(
-                      isCr ? formatCurrency(e.amount) : '—',
+                      isPaid ? formatCurrency(e.paidAmount) : '—',
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: isCr ? FontWeight.bold : FontWeight.normal,
-                        color: isCr ? const Color(0xFF047857) : Colors.grey,
+                        fontWeight: isPaid ? FontWeight.bold : FontWeight.normal,
+                        color: isPaid ? const Color(0xFF047857) : Colors.grey,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      formatCurrency(e.runningBalance),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: e.runningBalance > 0 ? Colors.red.shade800 : const Color(0xFF047857),
                       ),
                     ),
                   ),
@@ -636,18 +757,16 @@ class LedgerScreenState extends State<LedgerScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: e.isSettled ? Colors.green.shade50 : Colors.amber.shade50,
+                        color: statusBg,
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: e.isSettled ? Colors.green.shade200 : Colors.amber.shade200,
-                        ),
+                        border: Border.all(color: statusBorder),
                       ),
                       child: Text(
-                        e.isSettled ? 'Settled' : 'Unsettled',
+                        e.status.isNotEmpty ? e.status : (isSettled ? 'Settled' : 'Pending'),
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: e.isSettled ? Colors.green.shade800 : Colors.amber.shade900,
+                          color: statusText,
                         ),
                       ),
                     ),

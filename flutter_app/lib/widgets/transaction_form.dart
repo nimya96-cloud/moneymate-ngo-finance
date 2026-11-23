@@ -193,7 +193,7 @@ class _TransactionFormSheetState extends State<TransactionFormSheet> {
           amount: amount,
           transactionDate: dateStr,
           description: desc,
-          staffId: _selectedType == 'FIELD_EXPENSE' ? _selectedStaffId : null,
+          staffId: _selectedType == 'FIELD_EXPENSE' ? (_apiService.currentUser?.id ?? _selectedStaffId) : null,
         );
       }
 
@@ -472,7 +472,7 @@ class _TransactionFormSheetState extends State<TransactionFormSheet> {
                   ),
                   const SizedBox(height: 16),
 
-                  // If Field Expense, show staff selector
+                  // If Field Expense, show claiming staff (strictly locked to logged-in user)
                   if (_selectedType == 'FIELD_EXPENSE') ...[
                     const Text(
                       'Claiming Staff Member',
@@ -480,32 +480,63 @@ class _TransactionFormSheetState extends State<TransactionFormSheet> {
                     ),
                     const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        color: const Color(0xFFF8FAFC),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: _selectedStaffId,
-                          hint: const Text('Select staff member'),
-                          items: _allStaff.map((s) {
-                            return DropdownMenuItem<String>(
-                              value: s.id,
-                              child: Text(
-                                '${s.fullName} (${s.designation})',
-                                style: const TextStyle(fontSize: 14),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: isEditing
-                              ? null
-                              : (newStaff) {
-                                  setState(() => _selectedStaffId = newStaff);
-                                },
-                        ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person, size: 20, color: Color(0xFF047857)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _apiService.currentUser?.fullName ?? 'Logged-in Staff',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                                if (_apiService.currentUser?.designation != null &&
+                                    _apiService.currentUser!.designation.isNotEmpty)
+                                  Text(
+                                    _apiService.currentUser!.designation,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.lock, size: 12, color: Color(0xFF475569)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Locked',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF475569),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),

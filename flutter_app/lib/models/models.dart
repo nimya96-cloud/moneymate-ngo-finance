@@ -552,8 +552,13 @@ class StaffLedger {
   final String whatsappNumber;
   final double fixedSalary;
   final double currentPendingSalaryDue;
+  final double currentPendingTaDue;
+  final double totalCurrentPendingDue;
+  final double totalDueInPeriod;
   final double totalClaimsInPeriod;
   final double totalPaidInPeriod;
+  final double openingBalance;
+  final double closingBalance;
   final List<LedgerEntry> entries;
 
   const StaffLedger({
@@ -564,14 +569,23 @@ class StaffLedger {
     required this.whatsappNumber,
     required this.fixedSalary,
     required this.currentPendingSalaryDue,
+    this.currentPendingTaDue = 0.0,
+    this.totalCurrentPendingDue = 0.0,
+    this.totalDueInPeriod = 0.0,
     required this.totalClaimsInPeriod,
     required this.totalPaidInPeriod,
+    this.openingBalance = 0.0,
+    this.closingBalance = 0.0,
     required this.entries,
   });
 
-  double get netOutstanding => totalClaimsInPeriod - totalPaidInPeriod;
+  double get netOutstanding => totalCurrentPendingDue > 0 ? totalCurrentPendingDue : (totalDueInPeriod - totalPaidInPeriod);
 
   factory StaffLedger.fromJson(Map<String, dynamic> json) {
+    final pendingSalary = (json['current_pending_salary_due'] as num?)?.toDouble() ?? 0.0;
+    final pendingTa = (json['current_pending_ta_due'] as num?)?.toDouble() ?? 0.0;
+    final totalPending = (json['total_current_pending_due'] as num?)?.toDouble() ?? (pendingSalary + pendingTa);
+
     return StaffLedger(
       staffId: json['staff_id']?.toString() ?? '',
       staffName: json['staff_name']?.toString() ?? '',
@@ -579,9 +593,14 @@ class StaffLedger {
       designation: json['designation']?.toString() ?? '',
       whatsappNumber: json['whatsapp_number']?.toString() ?? '',
       fixedSalary: (json['fixed_salary'] as num?)?.toDouble() ?? 0.0,
-      currentPendingSalaryDue: (json['current_pending_salary_due'] as num?)?.toDouble() ?? 0.0,
+      currentPendingSalaryDue: pendingSalary,
+      currentPendingTaDue: pendingTa,
+      totalCurrentPendingDue: totalPending,
+      totalDueInPeriod: (json['total_due_in_period'] as num?)?.toDouble() ?? 0.0,
       totalClaimsInPeriod: (json['total_claims_in_period'] as num?)?.toDouble() ?? 0.0,
       totalPaidInPeriod: (json['total_paid_in_period'] as num?)?.toDouble() ?? 0.0,
+      openingBalance: (json['opening_balance'] as num?)?.toDouble() ?? 0.0,
+      closingBalance: (json['closing_balance'] as num?)?.toDouble() ?? totalPending,
       entries: (json['entries'] as List<dynamic>? ?? [])
           .map((e) => LedgerEntry.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -595,6 +614,10 @@ class LedgerEntry {
   final String project;
   final String description;
   final double amount;
+  final double dueAmount;
+  final double paidAmount;
+  final double runningBalance;
+  final String status;
   final bool isSettled;
   final String? voucherId;
   final bool isCreditPayout;
@@ -606,6 +629,10 @@ class LedgerEntry {
     required this.project,
     required this.description,
     required this.amount,
+    this.dueAmount = 0.0,
+    this.paidAmount = 0.0,
+    this.runningBalance = 0.0,
+    this.status = '',
     required this.isSettled,
     this.voucherId,
     required this.isCreditPayout,
@@ -613,15 +640,24 @@ class LedgerEntry {
   });
 
   factory LedgerEntry.fromJson(Map<String, dynamic> json) {
+    final isCredit = json['is_credit_payout'] == true;
+    final amt = (json['amount'] as num?)?.toDouble() ?? 0.0;
+    final due = (json['due_amount'] as num?)?.toDouble() ?? (!isCredit ? amt : 0.0);
+    final paid = (json['paid_amount'] as num?)?.toDouble() ?? (isCredit ? amt : 0.0);
+
     return LedgerEntry(
       date: json['date']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
       project: (json['project']?.toString() ?? 'CSA').toUpperCase(),
       description: json['description']?.toString() ?? '',
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      amount: amt,
+      dueAmount: due,
+      paidAmount: paid,
+      runningBalance: (json['running_balance'] as num?)?.toDouble() ?? 0.0,
+      status: json['status']?.toString() ?? (json['is_settled'] == true ? 'Settled' : 'Pending'),
       isSettled: json['is_settled'] == true,
       voucherId: json['voucher_id']?.toString(),
-      isCreditPayout: json['is_credit_payout'] == true,
+      isCreditPayout: isCredit,
       settlementDetails: json['settlement_details'] is Map<String, dynamic>
           ? json['settlement_details'] as Map<String, dynamic>
           : null,
